@@ -19,7 +19,8 @@ jobs:
       # do not stop on 1st fail
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-12, windows-2019]
+#        os: [ubuntu-20.04, macos-12, windows-2019]
+        os: [macos-12]
 
     runs-on: ${{ matrix.os }}
 
@@ -74,12 +75,13 @@ jobs:
       if: startsWith(matrix.os, 'macos')
       run:
         git submodule update --init --recursive;
-        mkdir build;brew update;
-        brew install qt5 fftw binutils create-dmg;
-        export Qt5_DIR=$(brew --prefix qt5);
+        mkdir build;
+        arch -arm64 brew update;
+        arch -arm64 brew install qt5 fftw binutils create-dmg;
+        export Qt5_DIR=$(arch -arm64 brew --prefix qt5);
         cd build;
         cp ../CHANGELOG changelog;
-        cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH=${Qt5_DIR}
+        arch -arm64 cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH=${Qt5_DIR}
 
 
     - name: macOS Build
@@ -88,12 +90,13 @@ jobs:
       working-directory: ${{github.workspace}}/build
       if: startsWith(matrix.os, 'macos')
       run:
-        make -j12;
-        sudo make -j12 package;
+        arch -arm64 make -j12;
+        sudo arch -arm64 make -j12 package;
         if test -d openhantek/OpenHantek.app; then
         export Qt5_DIR=$(brew --prefix qt5);
         export PATH=${Qt5_DIR}/bin:${PATH};
-        cd openhantek ; macdeployqt OpenHantek.app -always-overwrite -verbose=1;
+        cd openhantek ; 
+        arch -arm64 macdeployqt OpenHantek.app -always-overwrite -verbose=1;
         cp /usr/local/opt/gcc/lib/gcc/11/libgcc_s.1.1.dylib OpenHantek.app/Contents/Frameworks/;
         python ../../utils/macdeployqtfix/macdeployqtfix.py
         --quiet OpenHantek.app/Contents/MacOS/OpenHantek ${Qt5_DIR};
